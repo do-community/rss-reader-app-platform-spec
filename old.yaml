@@ -1,0 +1,65 @@
+---
+name: rss-reader
+domains:
+- domain: test1.shark.codes
+static_sites:
+- name: rss-reader-frontend
+  github:
+    repo: Zelgius/website
+    branch: main
+    deploy_on_push: true
+  routes:
+  - path: "/"
+  envs:
+  - key: HUGO_VERSION
+    value: 0.56.3
+    scope: BUILD_TIME
+    'type:': GENERAL
+databases:
+- name: rss
+  engine: PG
+  version: '12'
+services:
+- name: rss-reader-api
+  instance_count: 1
+  instance_size_slug: professional-xs
+  routes:
+  - path: "/api"
+  github:
+    repo: do-community/rss-reader-api
+    branch: main
+    deploy_on_push: true
+  run_command: gunicorn --worker-tmp-dir /dev/shm rss_reader.wsgi
+  envs:
+  - key: DB_USER
+    scope: RUN_AND_BUILD_TIME
+    value: "${rss.USERNAME}"
+    type: GENERAL
+  - key: DB_PASSWORD
+    scope: RUN_AND_BUILD_TIME
+    value: "${rss.PASSWORD}"
+    type: GENERAL
+  - key: DB_HOST
+    scope: RUN_AND_BUILD_TIME
+    value: "${rss.HOSTNAME}"
+    type: GENERAL
+  - key: DB_NAME
+    scope: RUN_AND_BUILD_TIME
+    value: "${rss.DATABASE}"
+    type: GENERAL
+  - key: DB_PORT
+    scope: RUN_AND_BUILD_TIME
+    value: "${rss.PORT}"
+    type: GENERAL
+  - key: DJANGO_ALLOWED_HOSTS
+    scope: RUN_AND_BUILD_TIME
+    value: www.shark.codes
+    type: GENERAL
+  - key: DEBUG
+    scope: RUN_AND_BUILD_TIME
+    value: 'False'
+    type: GENERAL
+  - key: DJANGO_ALLOWED_HOSTS
+    scope: RUN_AND_BUILD_TIME
+    value: test1.shark.codes
+    type: GENERAL
